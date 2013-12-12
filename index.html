@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+<title>AzUploader Example</title>
+<link rel="stylesheet" href="./css/style.css" type="text/css" title="style" />
+<script type="text/javascript" src="./script/AzUploader.js" charset="UTF-8"></script>
+<body>
+
+<script type="text/javascript">
+// 대기큐에 있는 파일 삭제
+function RemoveQueueFile(uploaderID,idx) {
+	if (confirm("정말 삭제하시겠습니까?") == true) {
+		AzUploaderComponent.get(uploaderID).remove(idx);
+	}
+}
+
+var AzUploader = new AzUploader({
+	id:"example", // 고유 ID (한페이지에서 이 값이 유일하여야 함)
+	flashURL:"./flash/AzUploader.swf", // 플래시파일의 경로 (상대경로 권장)
+	buttonURL:"../image/button.gif", // 버튼이미지 파일 (플래시 기준 상대경로)
+	width:75, // 버튼 가로 크기
+	height:20, // 버튼 세로크기
+	uploadURL:"../exec/upload.php?param1=1", // 업로드 경로 (플래시 기준 상대경로)
+	loadURL:"../exec/load.php?param1=2", // 기존업로드파일 로딩 경로 (플래시 기준 상대경로)
+	maxFileSize:100, // 한파일당 업로드가능 용량 (MB)
+	maxTotalSize:0, // 전체 업로드가능 용량 (MB)
+	allowType:"", // 허용확장자
+	listeners:{ // 이벤트 리스너 등록 (API 문서 참조)
+		onReady:function(uploader) {
+			// 업로드준비가 완료되었습니다.
+		},
+		onSelect:function(uploader,fileList) {
+			var queueObject = document.getElementById(uploader.id+"Queue"); // 큐목록 오브젝트
+			for (var i=0, loop=fileList.length;i<loop;i++) {
+				var fileObject = document.createElement("div");
+				fileObject.id = uploader.id+"Queue-"+fileList[i].idx;
+				fileObject.innerHTML = fileList[i].name+' <span class="size">('+AzUploaderFileSize(fileList[i].size)+')</span> <span class="delete" onclick="RemoveQueueFile(\''+uploader.id+'\','+fileList[i].idx+');">DELETE</span>';
+				queueObject.appendChild(fileObject);
+			}
+		},
+		onError:function(uploader,type,file) {
+			/*
+			참고
+			uploader.errorFiles 변수에 배열로 에러가 발생한 파일이 저장됩니다.
+			이 변수를 onComplete 함수에서 읽어와 업로드가 완료시 몇개의 파일이 제외되었다고 출력하는 방법을 권장합니다.
+			*/
+			var errorObject = document.getElementById(uploader.id+"Error"); // 에러목록 오브젝트
+			var fileObject = document.createElement("div");
+			switch (type) {
+				case "FileSizeOver" : // 업로드 용량 초과
+					fileObject.innerHTML+= file.name+" 제외 (업로드용량초과)<br />";
+				break;
+
+				case "TotalSizeOver" : // 업로드 용량 초과
+					fileObject.innerHTML+= file.name+" 제외 (총 업로드용량초과)<br />";
+				break;
+			}
+			errorObject.appendChild(fileObject);
+		},
+		onDelete:function(uploader,file) {
+			var queueObject = document.getElementById(uploader.id+"Queue"); // 큐목록 오브젝트
+			queueObject.removeChild(document.getElementById(uploader.id+"Queue-"+file.idx)); // 큐목록에서 삭제
+		},
+		onProgress:function(uploader,file,fileUpload,totalUpload,time,speed) {
+			// 업로드중인 파일하나에 대한 프로그래스바
+			document.getElementById(uploader.id+"ProgressFile").style.width = Math.round(fileUpload.upload/fileUpload.total*300)+"px";
+			document.getElementById(uploader.id+"ProgressFileText").innerHTML = (fileUpload.upload/fileUpload.total*100).toFixed(2)+"% Uploaded!, "+AzUploaderFileSize(speed.file*1024)+"/s";
+
+			// 전체 프로그래스바
+			document.getElementById(uploader.id+"ProgressTotal").style.width = Math.round(totalUpload.upload/totalUpload.total*300)+"px";
+			document.getElementById(uploader.id+"ProgressTotalText").innerHTML = (totalUpload.upload/totalUpload.total*100).toFixed(2)+"% Uploaded!, "+AzUploaderFileSize(speed.total*1024)+"/s, (Timer : "+time.total+" seconds / Remain : "+time.remain+" seconds)";
+		},
+		onUpload:function(uploader,file) {
+			var completeObject = document.getElementById(uploader.id+"Complete"); // 업로드완료목록 오브젝트
+			var fileObject = document.createElement("div");
+			fileObject.innerHTML = file.name+' <span class="size">('+AzUploaderFileSize(file.size)+')</span>, <span class="server">ServerValue : '+file.server+'</span>';
+			completeObject.appendChild(fileObject);
+
+			var queueObject = document.getElementById(uploader.id+"Queue"); // 큐목록 오브젝트
+			queueObject.removeChild(document.getElementById(uploader.id+"Queue-"+file.idx)); // 큐목록에서 삭제
+		},
+		onComplete:function(uploader) {
+			alert("모든 업로드가 완료되었습니다.");
+		},
+		beforeLoad:function(uploader) {
+			var completeObject = document.getElementById(uploader.id+"Complete");
+			completeObject.innerHTML = "";
+		},
+		onLoad:function(uploader,file) {
+			var completeObject = document.getElementById(uploader.id+"Complete"); // 업로드완료목록 오브젝트
+			var fileObject = document.createElement("div");
+			fileObject.innerHTML = file.name+' <span class="size">('+AzUploaderFileSize(file.size)+')</span>, <span class="server">ServerValue : '+file.server+'</span>';
+			completeObject.appendChild(fileObject);
+		}
+	}
+});
+</script>
+
+<div class="title">업로드대기목록 <span>(업로드 대기목록에 있는 파일은 에이지업로더에 의해 삭제할 수 있음)</span></div>
+<div id="exampleQueue" class="fileList"></div>
+
+<div class="button">
+	<button onclick="AzUploaderComponent.get('example').upload();"><span class="bold">업로드시작 (공용함수 사용)</span></button>
+	<button onclick="AzUploader.upload();">업로드시작 (객체함수 사용)</button>
+
+	<button onclick="AzUploader.setAllowType('gif,jpg');"><span class="red">확장자제한 (gif,jpg)</span></button>
+	<button onclick="AzUploader.setMaxFileSize(10);"><span class="red">용량제한 (10M)</span></button>
+	<button onclick="AzUploader.setMaxFileSize(0); AzUploader.setAllowType();"><span class="blue">모든제한해제</span></button>
+</div>
+
+<!-- 프로그래스바 디자인부분 -->
+<table cellspacing="0" cellpadding="0" class="progress">
+<col width="50" /><col width="310" /><col width="100%" />
+<tr>
+	<td class="progressText">FILE</td>
+	<td>
+		<div class="progressOff">
+			<div id="exampleProgressFile" class="progressOn"></div>
+		</div>
+	</td>
+	<td id="exampleProgressFileText" class="progressText"></td>
+</tr>
+</table>
+
+<table cellspacing="0" cellpadding="0" class="progress">
+<col width="50" /><col width="310" /><col width="100%" />
+<tr>
+	<td class="progressText">Total</td>
+	<td>
+		<div class="progressOff">
+			<div id="exampleProgressTotal" class="progressOn"></div>
+		</div>
+	</td>
+	<td id="exampleProgressTotalText" class="progressText"></td>
+</tr>
+</table>
+
+<div class="title">업로드제외목록 <span>(파일용량제한 : 100MB, 전체용량제한 : 없음)</span></div>
+<div id="exampleError" class="fileList"></div>
+<div class="title"><span>위의 객체는 onError 이벤트에 의해 등록됩니다. 이와 별도로 자동으로 업로더객체의 errorFiles 에 위의 목록이 기록됩니다.</span></div>
+
+<div class="title">업로드완료목록 <span>(업로드가 완료된 파일에 대한 삭제작업은 별도로 구현하여야 합니다.)</span></div>
+<div id="exampleComplete" class="fileList"></div>
+
+<div class="button">
+	<button onclick="AzUploader.load('param1=1');">기존 업로드 파일 로딩</button>
+</div>
+
+
+</body>
+</html>

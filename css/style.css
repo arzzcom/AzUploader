@@ -1,0 +1,20 @@
+.red {color:red;}
+.blue {color:blue;}
+.bold {font-weight:bold;}
+
+BUTTON {font-family:AppleGothic, 돋움; font-size:11px;}
+
+.title {font-family:AppleGothic, 돋움; font-size:14px; font-weight:bold; margin:10px 0px 5px 0px;}
+.title SPAN {font-family:AppleGothic, 돋움; font-size:11px; color:#999999; font-weight:normal;}
+.fileList {border:2px solid #CCCCCC; height:100px; overflow-y:scroll;}
+.fileList DIV {margin:5px; font-family:AppleGothic, 돋움; font-size:12px; font-weight:bold;}
+.fileList .size {font-family:tahoma; font-size:10px; font-weight:normal;}
+.fileList .delete {font-family:tahoma; font-size:10px; font-weight:bold; color:red; cursor:pointer;}
+.fileList .server {font-family:tahoma; font-size:10px; color:blue; font-weight:normal;}
+.button {margin:10px 0px 10px 0px;}
+
+/* ProgressBar */
+.progress {width:100%; table-layout:fixed; margin-top:2px;}
+.progressOn {width:0px; height:18px; background:#000000;}
+.progressOff {width:300px; border:1px solid #CCCCCC; height:18px; background:#F4F4F4;}
+.progressText {font-family:tahoma; font-size:11px;}
